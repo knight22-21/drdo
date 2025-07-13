@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Customize Units</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="container">
+    <h1>Customize Weapon & Target Stats</h1>
+    <form method="POST">
+        <h2>Weapons</h2>
+        {% for i in range(weapon_count | int) %}
+            <label>Weapon {{ i + 1 }} Damage:</label>
+            <input type="number" name="weapon_damage_{{ i }}" min="1" required>
+            <label>Cooldown (Rounds):</label>
+            <input type="number" name="weapon_cooldown_{{ i }}" min="1" required>
+            <label>Range (meters):</label>
+            <input type="number" name="weapon_range_{{ i }}" min="1" required>
+            <label>Speed (km/h):</label>
+            <input type="number" name="weapon_speed_{{ i }}" min="1" required>
+        {% endfor %}
+
+        <h2>Targets</h2>
+        {% for i in range(target_count | int) %}
+            <label>Target {{ i + 1 }} Armor:</label>
+            <input type="number" name="target_armor_{{ i }}" min="1" required>
+            <label>Speed (km/h):</label>
+            <input type="number" name="target_speed_{{ i }}" min="0" required>
+        {% endfor %}
+
+        <button type="submit">Next</button>
+    </form>
+    <a href="{{ url_for('configure_counts') }}">← Back</a>
+</div>
+</body>
+</html>

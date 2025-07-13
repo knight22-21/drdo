@@ -1,0 +1,138 @@
+/* static/style.css - Modern Military UI Theme */
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #101417; /* Modern dark base */
+    color: #e4e4e4;
+    margin: 0;
+    padding: 0;
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 900px;
+    margin: 50px auto;
+    background-color: #1a1f22; /* Slightly lighter than background */
+    padding: 40px;
+    border-radius: 12px;
+    border: 1px solid #2d3b2d; /* Tactical olive-gray */
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.06); /* radar glow effect */
+}
+
+h1, h2 {
+    text-align: center;
+    color: #00ffc8; /* modern teal accent */
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 25px;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+label {
+    font-weight: bold;
+    color: #c2c2b0; /* subtle tan-gray */
+    text-transform: uppercase;
+    font-size: 14px;
+}
+
+input, select {
+    padding: 12px;
+    font-size: 16px;
+    border-radius: 5px;
+    background-color: #2b2f33;
+    border: 1px solid #555;
+    color: #f0f0f0;
+    transition: all 0.2s ease-in-out;
+}
+
+input:focus, select:focus {
+    outline: none;
+    background-color: #343a3f;
+    border-color: #00ffc8;
+}
+
+button {
+    padding: 14px;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    border-radius: 6px;
+    background-color: #00ffc8;
+    color: #0e0e0e;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #00e6b2;
+}
+
+a {
+    color: #99ffcc;
+    text-decoration: none;
+    text-align: center;
+    display: block;
+    margin-top: 25px;
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 14px;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* Error Message */
+.error {
+    color: #ff5757;
+    text-align: center;
+    font-weight: bold;
+}
+
+/* Simulation Results Box */
+.results {
+    background-color: #121619;
+    padding: 25px;
+    border-radius: 10px;
+    border: 1px solid #334433;
+    font-family: 'Courier New', Courier, monospace;
+    white-space: pre-wrap;
+    color: #ccffcc;
+    margin-top: 30px;
+    overflow-x: auto;
+    max-height: 600px;
+}
+
+/* Data Tables */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    font-size: 15px;
+    background-color: #1e2428;
+    color: #f2f2f2;
+    border: 1px solid #3c4c3c;
+}
+
+th, td {
+    padding: 10px;
+    border: 1px solid #3c4c3c;
+}
+
+th {
+    background-color: #29332e;
+    color: #00ffc8;
+    text-transform: uppercase;
+    font-size: 13px;
+}
+
+td {
+    font-family: 'Courier New', Courier, monospace;
+}

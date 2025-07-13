@@ -1,0 +1,44 @@
+<!-- select_units.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Select Units</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Select Weapons and Targets</h1>
+        <form method="POST">
+
+            <div class="section">
+                <h2>Choose Weapons</h2>
+                {% for i in range(weapon_count | int) %}
+                    <label for="weapon_{{ i }}">Weapon {{ i+1 }}:</label>
+                    <select name="weapons" id="weapon_{{ i }}" required>
+                        {% for weapon in available_weapons %}
+                            <option value="{{ weapon }}">{{ weapon }}</option>
+                        {% endfor %}
+                    </select>
+                {% endfor %}
+            </div>
+
+            <div class="section">
+                <h2>Choose Targets</h2>
+                {% for i in range(target_count | int) %}
+                    <label for="target_{{ i }}">Target {{ i+1 }}:</label>
+                    <select name="targets" id="target_{{ i }}" required>
+                        {% for target in available_targets %}
+                            <option value="{{ target }}">{{ target }}</option>
+                        {% endfor %}
+                    </select>
+                {% endfor %}
+            </div>
+
+            <button type="submit">Run Simulation</button>
+        </form>
+        <!-- Updated back link -->
+        <a href="{{ url_for('configure_counts') }}">← Back</a>
+    </div>
+</body>
+</html>

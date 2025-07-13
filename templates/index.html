@@ -1,0 +1,27 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Battle Simulator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Select Scenario</h1>
+        <form method="POST">
+            <label for="scenario">Scenario:</label>
+            <select id="scenario" name="scenario" required>
+                {% for scenario_name in scenarios %}
+                    <option value="{{ scenario_name }}">{{ scenario_name.replace('_', ' ').title() }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit">Next</button>
+        </form>
+
+        {% if error %}
+            <p class="error">{{ error }}</p>
+        {% endif %}
+    </div>
+</body>
+</html>
