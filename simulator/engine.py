@@ -65,31 +65,47 @@ scenarios = {
 
 # ------------------------ Simulation Function ------------------------
 
-def simulate(scenario_name, selected_weapons, selected_targets, max_rounds=500):
-    weapons = [{"id": i, "type": w, "ready_in": 0} for i, w in enumerate(selected_weapons)]
-    targets = [{"id": i, "type": t, "distance": random.randint(200_000, 800_000)} for i, t in enumerate(selected_targets)]
-    hp = [target_stats[t["type"]]["armor"] * 10 for t in targets]
+def simulate(scenario_name, weapon_configs, target_configs, max_rounds=500):
+    weapons = [{
+        "id": i,
+        "type": w["type"],
+        "damage": w["damage"],
+        "cooldown": w["cooldown"],
+        "range": w["range"],
+        "speed": w["speed"],
+        "ready_in": 0
+    } for i, w in enumerate(weapon_configs)]
 
+    targets = [{
+        "id": i,
+        "type": t["type"],
+        "armor": t["armor"],
+        "speed": t["speed"],
+        "distance": random.randint(200_000, 800_000)
+    } for i, t in enumerate(target_configs)]
+
+    hp = [t["armor"] * 10 for t in targets]
     log = []
 
     for round_num in range(1, max_rounds + 1):
         round_log = [f"--- Round {round_num} ---"]
 
-        # Update distances
         for t in targets:
-            t["distance"] = max(0, t["distance"] - target_stats[t["type"]]["speed"])
+            t["distance"] = max(0, t["distance"] - t["speed"])
 
-        # Threat and effectiveness
-        threats = [(target_stats[t["type"]]["armor"] / max(t["distance"], 1)) + (200000 / (t["distance"]**2)) for t in targets]
+        threats = [
+            (t["armor"] / max(t["distance"], 1)) + (200_000 / (t["distance"]**2))
+            for t in targets
+        ]
+
         effects = [[0]*len(targets) for _ in weapons]
 
         for i, w in enumerate(weapons):
-            ws = weapon_stats[w["type"]]
             for j, t in enumerate(targets):
-                if t["distance"] > ws["range"]:
+                if t["distance"] > w["range"]:
                     continue
-                rm = max(0.1, 1 - t["distance"] / ws["range"])
-                eff = (ws["damage"] * rm) / (target_stats[t["type"]]["armor"] + 1)
+                rm = max(0.1, 1 - t["distance"] / w["range"])
+                eff = (w["damage"] * rm) / (t["armor"] + 1)
                 effects[i][j] = min(1, eff / 2)
 
         assigns = [-1] * len(weapons)
@@ -99,30 +115,33 @@ def simulate(scenario_name, selected_weapons, selected_targets, max_rounds=500):
             if w["ready_in"] > 0:
                 w["ready_in"] -= 1
                 continue
+
             best, bs = -1, -1
             for j, t in enumerate(targets):
-                if hp[j] <= 0 or load[j] >= 3 or t["distance"] > weapon_stats[w["type"]]["range"]:
+                if hp[j] <= 0 or load[j] >= 3 or t["distance"] > w["range"]:
                     continue
                 sc = effects[i][j] * threats[j]
                 if sc > bs:
                     best, bs = j, sc
+
             if best >= 0:
                 assigns[i] = best
                 load[best] += 1
-                w["ready_in"] = weapon_stats[w["type"]]["cooldown"]
+                w["ready_in"] = w["cooldown"]
 
         for i, target_idx in enumerate(assigns):
             if target_idx < 0:
                 round_log.append(f"Weapon {weapons[i]['id']} ({weapons[i]['type']}) idle/cooling")
                 continue
-            ws = weapon_stats[weapons[i]["type"]]
-            dist = targets[target_idx]["distance"]
-            rm = max(0.1, 1 - dist / ws["range"])
-            dmg = ws["damage"] * rm
+            w = weapons[i]
+            t = targets[target_idx]
+            dist = t["distance"]
+            rm = max(0.1, 1 - dist / w["range"])
+            dmg = w["damage"] * rm
             hp[target_idx] = max(0, hp[target_idx] - dmg)
             round_log.append(
-                f"Weapon {weapons[i]['id']} ({weapons[i]['type']}) → Target {target_idx} "
-                f"({targets[target_idx]['type']}) | Damage: {dmg:.2f} | HP left: {hp[target_idx]:.2f}"
+                f"Weapon {w['id']} ({w['type']}) → Target {target_idx} "
+                f"({t['type']}) | Damage: {dmg:.2f} | HP left: {hp[target_idx]:.2f}"
             )
 
         all_neutralized = True

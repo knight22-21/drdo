@@ -36,9 +36,8 @@ def select_units():
     scenario = session.get("scenario")
     weapon_count = session.get("weapon_count")
     target_count = session.get("target_count")
-    max_rounds = session.get("max_rounds", 500)  
+    max_rounds = session.get("max_rounds", 500)
 
-    # Ensure counts are integers
     try:
         weapon_count = int(weapon_count)
         target_count = int(target_count)
@@ -46,7 +45,7 @@ def select_units():
         return redirect(url_for("configure_counts"))
 
     if not scenario:
-        return redirect(url_for("index"))  # changed here
+        return redirect(url_for("index"))
 
     available_weapons = scenarios[scenario]["available_weapons"]
     available_targets = scenarios[scenario]["available_targets"]
@@ -58,9 +57,39 @@ def select_units():
         if len(selected_weapons) != weapon_count or len(selected_targets) != target_count:
             return "Please select the correct number of weapons and targets.", 400
 
-        result_text, result_lines = simulate(scenario, selected_weapons, selected_targets, max_rounds)
-        return render_template("result.html", result=result_text, lines=result_lines, scenario=scenario)
+        # Collect weapon configurations
+        weapon_configs = []
+        for i in range(weapon_count):
+            try:
+                weapon_configs.append({
+                    "type": selected_weapons[i],
+                    "damage": float(request.form[f"damage_{i}"]),
+                    "cooldown": float(request.form[f"cooldown_{i}"]),
+                    "range": float(request.form[f"range_{i}"]),
+                    "speed": float(request.form[f"speed_{i}"])
+                })
+            except (KeyError, ValueError):
+                return f"Invalid input for weapon {i+1}.", 400
 
+        target_configs = []
+        for i in range(target_count):
+            try:
+                target_configs.append({
+                    "type": selected_targets[i],
+                    "armor": float(request.form[f"armor_{i}"]),
+                    "speed": float(request.form[f"target_speed_{i}"])
+                })
+            except (KeyError, ValueError):
+                return f"Invalid input for target {i+1}.", 400
+        
+        # Pass weapon_configs to your simulate function
+        result_text, result_lines = simulate(
+            scenario,
+            weapon_configs,
+            selected_targets,
+            max_rounds
+        )
+        return render_template("result.html", result=result_text, lines=result_lines, scenario=scenario)
 
     return render_template(
         "select_units.html",
@@ -69,6 +98,7 @@ def select_units():
         available_weapons=available_weapons,
         available_targets=available_targets
     )
+
 
 
 if __name__ == "__main__":
