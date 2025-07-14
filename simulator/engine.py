@@ -65,16 +65,19 @@ scenarios = {
 
 # ------------------------ Simulation Function ------------------------
 
+import heapq
+
 def simulate(scenario_name, weapon_configs, target_configs):
     log = [f"--- Simulation for {scenario_name.replace('_', ' ').title()} ---"]
 
+    # Build weapons and targets list
     weapons = [
         {
             "id": i,
             "type": w["type"],
             "damage": w["damage"],
-            "range_km": w["range"],  
-            "speed": w["speed"]  
+            "range_km": w["range"],
+            "speed": w["speed"]
         }
         for i, w in enumerate(weapon_configs)
     ]
@@ -84,19 +87,32 @@ def simulate(scenario_name, weapon_configs, target_configs):
             "id": i,
             "type": t["type"],
             "armor": t["armor"],
-            "speed": t["speed"],  
-            "distance_km": t["distance"] 
+            "speed": t["speed"],
+            "distance_km": t["distance"]
         }
         for i, t in enumerate(target_configs)
     ]
 
-    hp = [t["armor"] * 4 for t in targets]  # reduced from *10 to allow more neutralization
-    assigned_targets = set()
-    assignments = []
+    # Initialize HP for targets
+    hp = [t["armor"] * 4 for t in targets]  # can tweak multiplier for realism
 
+    # Optional: Define strategic priorities (custom weight by target type)
+    priority_bonus = {
+        "commandcenter": 1.5,
+        "radar": 1.2,
+        "tank": 1.1,
+        "aircraft": 1.1,
+        "infantry": 1.0
+    }
+
+    # --- Sort weapons: Highest damage and range fire first ---
+    weapons.sort(key=lambda w: (w["damage"], w["range_km"]), reverse=True)
+
+    # Simulation loop
     for w in weapons:
-        best_target = None
-        best_score = -1
+        target_queue = []
+
+        # Score all valid targets and add to priority queue
         for i, t in enumerate(targets):
             if hp[i] <= 0:
                 continue  # already neutralized
@@ -105,13 +121,16 @@ def simulate(scenario_name, weapon_configs, target_configs):
 
             range_modifier = max(0.5, 1 - t["distance_km"] / w["range_km"])
             effective_damage = w["damage"] * range_modifier
-            score = effective_damage / (t["armor"] + 1)
+            strategic_bonus = priority_bonus.get(t["type"], 1.0)
 
-            if score > best_score:
-                best_score = score
-                best_target = i
+            score = (effective_damage / (t["armor"] + 1)) * strategic_bonus
 
-        if best_target is not None:
+            # Push to priority queue (use negative score for max-heap)
+            heapq.heappush(target_queue, (-score, i))
+
+        # Choose best target
+        if target_queue:
+            _, best_target = heapq.heappop(target_queue)
             t = targets[best_target]
             dist_km = t["distance_km"]
             range_modifier = max(0.5, 1 - dist_km / w["range_km"])
@@ -123,10 +142,8 @@ def simulate(scenario_name, weapon_configs, target_configs):
                 f"| Distance: {dist_km:.1f} km | Damage: {effective_damage:.2f} | HP left: {hp[best_target]:.2f}"
             )
             result += "  Neutralized" if hp[best_target] <= 0 else "  Survived"
-
             log.append(result)
         else:
-            log.append(f" Weapon {w['id']} ({w['type']}) →  No valid target in range or already neutralized")
-
+            log.append(f" Weapon {w['id']} ({w['type']}) → No valid target in range or already neutralized")
 
     return "\n".join(log), log
