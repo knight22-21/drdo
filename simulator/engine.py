@@ -66,7 +66,7 @@ scenarios = {
 # ------------------------ Simulation Function ------------------------
 
 def simulate(scenario_name, weapon_configs, target_configs):
-    log = [f"--- Single Round Simulation for {scenario_name.replace('_', ' ').title()} ---"]
+    log = [f"--- Simulation for {scenario_name.replace('_', ' ').title()} ---"]
 
     weapons = [
         {
@@ -119,14 +119,14 @@ def simulate(scenario_name, weapon_configs, target_configs):
             hp[best_target] = max(0, hp[best_target] - effective_damage)
 
             result = (
-                f"🔫 Weapon {w['id']} ({w['type']}) → Target {best_target} ({t['type']}) "
+                f" Weapon {w['id']} ({w['type']}) → Target {best_target} ({t['type']}) "
                 f"| Distance: {dist_km:.1f} km | Damage: {effective_damage:.2f} | HP left: {hp[best_target]:.2f}"
             )
-            result += " ✅ Neutralized" if hp[best_target] <= 0 else " ❌ Survived"
+            result += "  Neutralized" if hp[best_target] <= 0 else "  Survived"
 
             log.append(result)
         else:
-            log.append(f"🔫 Weapon {w['id']} ({w['type']}) → ❌ No valid target in range or already neutralized")
+            log.append(f" Weapon {w['id']} ({w['type']}) →  No valid target in range or already neutralized")
 
 
     return "\n".join(log), log

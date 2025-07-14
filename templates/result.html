@@ -21,19 +21,7 @@
         <div class="results">
             <table>
                 {% for line in lines %}
-                    {% if line.startswith('---') %}
-                        <tr><th colspan="3">{{ line }}</th></tr>
-                    {% elif '→' in line %}
-                        <tr><td>🔫</td><td colspan="2">{{ line }}</td></tr>
-                    {% elif 'Neutralized' in line %}
-                        <tr><td>✅</td><td colspan="2">{{ line }}</td></tr>
-                    {% elif 'idle/cooling' in line %}
-                        <tr><td>🕒</td><td colspan="2">{{ line }}</td></tr>
-                    {% elif 'HP=' in line %}
-                        <tr><td>🎯</td><td colspan="2">{{ line }}</td></tr>
-                    {% else %}
-                        <tr><td colspan="3">{{ line }}</td></tr>
-                    {% endif %}
+                    <tr><td colspan="3">{{ line }}</td></tr>
                 {% endfor %}
             </table>
         </div>
