@@ -1,5 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 from simulator.engine import scenarios, simulate
+from simulator.engine import weapon_stats, target_stats
+
 
 app = Flask(__name__)
 app.secret_key = "supersecurekey"
@@ -22,7 +24,6 @@ def configure_counts():
         try:
             session["weapon_count"] = int(request.form["weapon_count"])
             session["target_count"] = int(request.form["target_count"])
-            session["max_rounds"] = int(request.form["max_rounds"])
         except (KeyError, ValueError, TypeError):
             return "Invalid input", 400
         return redirect(url_for("select_units"))
@@ -36,7 +37,6 @@ def select_units():
     scenario = session.get("scenario")
     weapon_count = session.get("weapon_count")
     target_count = session.get("target_count")
-    max_rounds = session.get("max_rounds", 500)
 
     try:
         weapon_count = int(weapon_count)
@@ -63,8 +63,7 @@ def select_units():
             try:
                 weapon_configs.append({
                     "type": selected_weapons[i],
-                    "damage": float(request.form[f"damage_{i}"]),
-                    "cooldown": float(request.form[f"cooldown_{i}"]),
+                    "damage": weapon_stats[selected_weapons[i]]["damage"],
                     "range": float(request.form[f"range_{i}"]),
                     "speed": float(request.form[f"speed_{i}"])
                 })
@@ -76,8 +75,9 @@ def select_units():
             try:
                 target_configs.append({
                     "type": selected_targets[i],
-                    "armor": float(request.form[f"armor_{i}"]),
-                    "speed": float(request.form[f"target_speed_{i}"])
+                    "armor": target_stats[selected_targets[i]]["armor"],
+                    "speed": float(request.form[f"target_speed_{i}"]),
+                    "distance": float(request.form[f"target_distance_{i}"])
                 })
             except (KeyError, ValueError):
                 return f"Invalid input for target {i+1}.", 400
@@ -86,9 +86,9 @@ def select_units():
         result_text, result_lines = simulate(
             scenario,
             weapon_configs,
-            selected_targets,
-            max_rounds
+            target_configs
         )
+
         return render_template("result.html", result=result_text, lines=result_lines, scenario=scenario)
 
     return render_template(

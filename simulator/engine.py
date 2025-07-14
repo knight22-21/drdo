@@ -65,100 +65,68 @@ scenarios = {
 
 # ------------------------ Simulation Function ------------------------
 
-def simulate(scenario_name, weapon_configs, target_configs, max_rounds=500):
-    weapons = [{
-        "id": i,
-        "type": w["type"],
-        "damage": w["damage"],
-        "cooldown": w["cooldown"],
-        "range": w["range"],
-        "speed": w["speed"],
-        "ready_in": 0
-    } for i, w in enumerate(weapon_configs)]
+def simulate(scenario_name, weapon_configs, target_configs):
+    log = [f"--- Single Round Simulation for {scenario_name.replace('_', ' ').title()} ---"]
 
-    targets = [{
-        "id": i,
-        "type": t["type"],
-        "armor": t["armor"],
-        "speed": t["speed"],
-        "distance": random.randint(200_000, 800_000)
-    } for i, t in enumerate(target_configs)]
+    weapons = [
+        {
+            "id": i,
+            "type": w["type"],
+            "damage": w["damage"],
+            "range_km": w["range"],  
+            "speed": w["speed"]  
+        }
+        for i, w in enumerate(weapon_configs)
+    ]
 
-    hp = [t["armor"] * 10 for t in targets]
-    log = []
+    targets = [
+        {
+            "id": i,
+            "type": t["type"],
+            "armor": t["armor"],
+            "speed": t["speed"],  
+            "distance_km": t["distance"] 
+        }
+        for i, t in enumerate(target_configs)
+    ]
 
-    for round_num in range(1, max_rounds + 1):
-        round_log = [f"--- Round {round_num} ---"]
+    hp = [t["armor"] * 4 for t in targets]  # reduced from *10 to allow more neutralization
+    assigned_targets = set()
+    assignments = []
 
-        for t in targets:
-            t["distance"] = max(0, t["distance"] - t["speed"])
+    for w in weapons:
+        best_target = None
+        best_score = -1
+        for i, t in enumerate(targets):
+            if hp[i] <= 0:
+                continue  # already neutralized
+            if t["distance_km"] > w["range_km"]:
+                continue  # out of range
 
-        threats = [
-            (t["armor"] / max(t["distance"], 1)) + (200_000 / (t["distance"]**2))
-            for t in targets
-        ]
+            range_modifier = max(0.5, 1 - t["distance_km"] / w["range_km"])
+            effective_damage = w["damage"] * range_modifier
+            score = effective_damage / (t["armor"] + 1)
 
-        effects = [[0]*len(targets) for _ in weapons]
+            if score > best_score:
+                best_score = score
+                best_target = i
 
-        for i, w in enumerate(weapons):
-            for j, t in enumerate(targets):
-                if t["distance"] > w["range"]:
-                    continue
-                rm = max(0.1, 1 - t["distance"] / w["range"])
-                eff = (w["damage"] * rm) / (t["armor"] + 1)
-                effects[i][j] = min(1, eff / 2)
+        if best_target is not None:
+            t = targets[best_target]
+            dist_km = t["distance_km"]
+            range_modifier = max(0.5, 1 - dist_km / w["range_km"])
+            effective_damage = w["damage"] * range_modifier
+            hp[best_target] = max(0, hp[best_target] - effective_damage)
 
-        assigns = [-1] * len(weapons)
-        load = [0] * len(targets)
-
-        for i, w in enumerate(weapons):
-            if w["ready_in"] > 0:
-                w["ready_in"] -= 1
-                continue
-
-            best, bs = -1, -1
-            for j, t in enumerate(targets):
-                if hp[j] <= 0 or load[j] >= 3 or t["distance"] > w["range"]:
-                    continue
-                sc = effects[i][j] * threats[j]
-                if sc > bs:
-                    best, bs = j, sc
-
-            if best >= 0:
-                assigns[i] = best
-                load[best] += 1
-                w["ready_in"] = w["cooldown"]
-
-        for i, target_idx in enumerate(assigns):
-            if target_idx < 0:
-                round_log.append(f"Weapon {weapons[i]['id']} ({weapons[i]['type']}) idle/cooling")
-                continue
-            w = weapons[i]
-            t = targets[target_idx]
-            dist = t["distance"]
-            rm = max(0.1, 1 - dist / w["range"])
-            dmg = w["damage"] * rm
-            hp[target_idx] = max(0, hp[target_idx] - dmg)
-            round_log.append(
-                f"Weapon {w['id']} ({w['type']}) → Target {target_idx} "
-                f"({t['type']}) | Damage: {dmg:.2f} | HP left: {hp[target_idx]:.2f}"
+            result = (
+                f"🔫 Weapon {w['id']} ({w['type']}) → Target {best_target} ({t['type']}) "
+                f"| Distance: {dist_km:.1f} km | Damage: {effective_damage:.2f} | HP left: {hp[best_target]:.2f}"
             )
+            result += " ✅ Neutralized" if hp[best_target] <= 0 else " ❌ Survived"
 
-        all_neutralized = True
-        for idx, t in enumerate(targets):
-            if hp[idx] <= 0:
-                round_log.append(f"Target {idx} ({t['type']}): Neutralized")
-            else:
-                round_log.append(
-                    f"Target {idx} ({t['type']}): HP={hp[idx]:.2f}, Distance={t['distance']:.2f}"
-                )
-                all_neutralized = False
+            log.append(result)
+        else:
+            log.append(f"🔫 Weapon {w['id']} ({w['type']}) → ❌ No valid target in range or already neutralized")
 
-        log.append("\n".join(round_log))
 
-        if all_neutralized:
-            log.append(f"\n✅ All targets neutralized in {round_num} rounds.")
-            return "\n\n".join(log), [line for block in log for line in block.splitlines()]
-
-    log.append("\n⚠️ Max rounds reached. Some targets remain.")
-    return "\n\n".join(log), [line for block in log for line in block.splitlines()]
+    return "\n".join(log), log

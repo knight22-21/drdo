@@ -23,17 +23,16 @@
                             {% endfor %}
                         </select>
 
-                        <label for="damage_{{ i }}">Damage:</label>
-                        <input type="number" name="damage_{{ i }}" step="0.1" required>
+                        
 
-                        <label for="cooldown_{{ i }}">Cooldown (sec):</label>
-                        <input type="number" name="cooldown_{{ i }}" step="0.1" required>
+                        
 
-                        <label for="range_{{ i }}">Range (m):</label>
+                        <label for="range_{{ i }}">Range (km):</label>
                         <input type="number" name="range_{{ i }}" required>
 
-                        <label for="speed_{{ i }}">Projectile Speed (m/s):</label>
+                        <label for="speed_{{ i }}">Projectile Speed (km/h):</label>
                         <input type="number" name="speed_{{ i }}" step="0.1" required>
+
                     </div>
                 {% endfor %}
             </div>
@@ -48,15 +47,18 @@
                         <select name="targets" id="target_{{ i }}" required>
                             {% for target in available_targets %}
                                 <option value="{{ target }}">{{ target }}</option>
-                            {% endfor %}
+                            {% endfor %}x
                         </select>
 
                         <!-- Custom target values -->
-                        <label for="armor_{{ i }}">Armor:</label>
-                        <input type="number" step="0.1" name="armor_{{ i }}" required>
+                        
 
-                        <label for="target_speed_{{ i }}">Speed (m/s):</label>
+                        <label for="target_distance_{{ i }}">Distance from Weapon (km):</label>
+                        <input type="number" step="0.1" name="target_distance_{{ i }}" required>
+
+                        <label for="target_speed_{{ i }}">Speed (km/h):</label>
                         <input type="number" step="0.1" name="target_speed_{{ i }}" required>
+
                     </div>
                 {% endfor %}
             </div>
